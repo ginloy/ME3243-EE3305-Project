@@ -1,0 +1,21 @@
+behavior:
+  ros__parameters:
+    frequency: 20.0 # {double} [Hz]
+    plan_frequency: 0.5 # {double} [Hz]
+
+map_server:
+  ros__parameters:
+    max_cost: 99 # {int8_t} 
+    circumscribed_radius: 0.15 # {double} [m]
+    inflation_radius: 0.8 # {double} [m]
+    cost_exponent: 0.2 # {double} 
+
+controller:
+  ros__parameters:
+    frequency: 20.0 # {double} [Hz]
+    lookahead_distance: 0.1 # {double} [m]
+    stop_thres: 0.1 # {double} [m]
+    kp_lin: 0.0 # {double}
+    kd_lin: 0.0 # {double} [s]
+    kp_ang: 0.0 # {double} 
+    kd_ang: 0.0 # {double} [s]
