@@ -1,0 +1,55 @@
+services:
+  # novnc:
+  #   image: theasp/novnc:latest
+  #   environment:
+  #     - DISPLAY_WIDTH=1080
+  #     - DISPLAY_HEIGHT=720
+  #     - RUN_XTERM=no
+  #   networks:
+  #     - caddy
+  #     - default
+  #   labels:
+  #     caddy: https://temp.ginloy.com
+  #     caddy.route.1_import: auth
+  #     caddy.route.2_reverse_proxy: "{{upstreams http 8080}}"
+
+  ros:
+    build: ./.
+    environment:
+      - DISPLAY
+      # - XAUTHORITY=/root/.Xauthority
+      # - DISPLAY=novnc:0.0
+      - TURTLEBOT3_MODEL=burger
+      - ROS_DOMAIN_ID=30
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      # - NVIDIA_DRIVER_CAPABILITIES=all
+      # - NVIDIA_VISIBLE_DEVICES=all
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ./dockerhome:/home/abc
+      - .:/home/abc/app
+    networks:
+      - caddy
+    # ports:
+    #   - 7000:13337
+    labels:
+      caddy: https://temp.ginloy.com
+      caddy.route.1_import: auth
+      caddy.route.2_reverse_proxy: "{{upstreams http 13337}}" 
+    deploy:
+      resources:
+        reservations:
+          devices:
+            # - nvidia.com/gpu=all
+            - driver: cdi # Specifies the NVIDIA driver
+              device_ids:
+                - nvidia.com/gpu=all
+              # count: all # Allocates all available GPUs
+              # capabilities: [gpu] # Requests GPU capabilities
+    # runtime: nvidia # Uses the NVIDIA runtime for GPU support
+    
+
+
+networks:
+  caddy:
+    external: true
