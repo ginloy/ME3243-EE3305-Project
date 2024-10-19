@@ -2,3 +2,7 @@
 build/
 install/
 log/
+.direnv
+.cache
+.env
+dockerhome
