@@ -1,8 +1,11 @@
-#include <iostream>
-#include <iomanip>
-#include <memory>
-#include <chrono>
-#include <vector>
+// include statements allow the script to use external libraries or user-defined header files
+// similar to import statements in python
+#include <iostream> // for i/o operations
+#include <iomanip> // for manipulating i/o format, e.g. setting precision for floating point numbers
+#include <memory> // allows the use of smart pointers for automatic memory management
+#include <chrono> // for time-related functions such as timing and duration
+#include <vector> // provides the std::vector container, which is a dynamic array class
+#include <cmath> // for math operators like sqrt
 
 #include "rclcpp/rclcpp.hpp"
 #include "nav_msgs/msg/occupancy_grid.hpp"
@@ -14,6 +17,8 @@
 
 using namespace std::chrono_literals; // required for using the chrono literals such as "ms" or "s"
 
+// declaring a namespace encapsulates all definitions within the scope of this project
+// prevents naming conflicts with external libraries or other parts of the program
 namespace ee3305
 {
     // =================================================================================================
@@ -21,6 +26,9 @@ namespace ee3305
     class Planner : public rclcpp::Node
     {
 
+    // public/private labels define access control for members (variables/functions) of a class
+    // public members can be accessed from anywhere outside the class
+    // private members can only be accessed within the class itself or within other functions/classes declared as friends
     private:
         // ----------- Publishers / Subscribers --------------
         rclcpp::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr sub_global_costmap;
@@ -51,7 +59,7 @@ namespace ee3305
         }
 
     private:
-        void initStates()
+        void initStates() // void means this function does not return anything
         {
             resolution = 0;
             origin_x = 0;
@@ -162,7 +170,101 @@ namespace ee3305
         std::vector<int> run(
             int start_i, int start_j, int goal_i, int goal_j)
         {
-            std::vector<int> path = {goal_i, goal_j, start_i, start_j};
+            auto getIndex = [&](int i, int j) -> int // returns index in the flattened vector given the cell coordinates
+            {
+                return j * cols + i;
+            }
+
+            auto inMap = [&](int i, int j) -> bool // checks whether the given coordinates lie in the map
+            {
+                return i >= 0 && i < cols && j >= 0 && j < rows;
+            }
+
+            auto eucDist = [&](int i1, int j1, int i2, int j2) -> double // returns the euclidean distance between 2 cells
+            {
+                return std::sqrt(std::pow(i1 - i2, 2) + std::pow(j1 - j2, 2));
+            }
+
+            auto getPenalty = [&](int i, int j) -> double // returns the cost penalty of the cell (ranges from 1 to 99)
+            {
+                return map[getIndex(i, j)];
+            }
+
+            std::vector<PlannerNode> nodes; // initialise all nodes as a flattened vector of PlannerNode structs
+            for (j = 0; j < rows; ++j){
+                for (i = 0; i < cols; ++i){
+                    nodes.emplace_back(i, j)
+                }
+            }
+
+            auto getNode = [&](int i, int j) -> PlannerNode * // * means the function returns a pointer to a PlannerNode object
+            {
+                return nodes[getIndex(i, j)];
+            }
+
+            OpenList open_list; // initialise open_list
+
+            std::vector<int> path = {}; // initialise empty path
+
+            // initialise start node
+            PlannerNode *node = getNode(start_i, start_j);
+            node -> g = 0;
+            node -> f = eucDist(start_i, start_j, goal_i, goal_j);
+            open_list.queue(node);
+
+            while (!open_list.empty()){ // while open_list is not empty
+                node = poll(); // return first node in open_list and remove it from open_list
+
+                if (!node -> visited){ // if node has not been expanded
+                    node -> visited = true; // mark it as expanded    
+
+                    if (node -> i == goal_i && node -> j == goal_j){ // if current node is the goal
+                        PlannerNode *currentNode = node;
+
+                        while (currentNode -> parent != nullptr){ // trace back all parent nodes from the goal to obtain the path
+                            if (currentNode -> parent -> i == start_i && currentNode -> parent -> j == start_j){ // if parent is the start
+                                break;
+                            } else {
+                                // append node coordinates to the path
+                                path.push_back(currentNode -> parent -> i); 
+                                path.push_back(currentNode -> parent -> j);
+
+                                currentNode = currentNode -> parent; // reassign parent as current node to search the parent nodes recursively
+                            }
+                        }
+                    } else { // if current node is not the goal
+                        for (int d = 0; d < 8; ++d){ // get neighbour coordinates
+                            int nb_i = node -> i;
+                            int nb_j = node -> j;
+                            if (d == 0) {nb_j += 1} // north
+                            else if (d == 1) {nb_i -= 1; nb_j += 1} // northwest
+                            else if (d == 2) {nb_i -= 1} // west
+                            else if (d == 3) {nb_i -= 1; nb_j -= 1} // southwest
+                            else if (d == 4) {nb_j -= 1} // south
+                            else if (d == 5) {nb_i += 1; nb_j -= 1} // southeast
+                            else if (d == 6) {nb_i += 1} // east
+                            else if (d == 7) {nb_i += 1; nb_j += 1} // northeast
+
+                            if (!inMap(nb_i, nb_j)){ // if neighbour is not in the map
+                                continue;
+                            } else { // if neighbour is in the map
+                                PlannerNode *nb_node =  getNode(nb_i, nb_j);
+                                double nb_penalty = getPenalty(nb_i, nb_j);
+                                double new_nb_g_cost = node -> g + nb_penalty*eucDist(nb_i, nb_j, node -> i, node -> j);
+
+                                if (new_nb_g_cost < nb_node -> g){ // if this g cost is cheaper than the previously stored value
+                                    nb_node -> parent = node; // neighbour's parent becomes the current node
+                                    nb_node -> g = new_nb_g_cost; // neighbour's g cost becomes the new g cost
+                                }
+                            }
+                        }
+                    }
+
+                } else { // if node has already been expanded
+                    continue;
+                }
+            }
+
             return path;
         }
     };
