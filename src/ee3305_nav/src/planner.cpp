@@ -173,34 +173,34 @@ namespace ee3305
             auto getIndex = [&](int i, int j) -> int // returns index in the flattened vector given the cell coordinates
             {
                 return j * cols + i;
-            }
+            };
 
             auto inMap = [&](int i, int j) -> bool // checks whether the given coordinates lie in the map
             {
                 return i >= 0 && i < cols && j >= 0 && j < rows;
-            }
+            };
 
             auto eucDist = [&](int i1, int j1, int i2, int j2) -> double // returns the euclidean distance between 2 cells
             {
                 return std::sqrt(std::pow(i1 - i2, 2) + std::pow(j1 - j2, 2));
-            }
+            };
 
             auto getPenalty = [&](int i, int j) -> double // returns the cost penalty of the cell (ranges from 1 to 99)
             {
                 return map[getIndex(i, j)];
-            }
+            };
 
             std::vector<PlannerNode> nodes; // initialise all nodes as a flattened vector of PlannerNode structs
-            for (j = 0; j < rows; ++j){
-                for (i = 0; i < cols; ++i){
-                    nodes.emplace_back(i, j)
+            for (int j = 0; j < rows; ++j){
+                for (int i = 0; i < cols; ++i){
+                    nodes.emplace_back(i, j);
                 }
             }
 
             auto getNode = [&](int i, int j) -> PlannerNode * // * means the function returns a pointer to a PlannerNode object
             {
-                return nodes[getIndex(i, j)];
-            }
+                return &nodes[getIndex(i, j)];
+            };
 
             OpenList open_list; // initialise open_list
 
@@ -213,7 +213,7 @@ namespace ee3305
             open_list.queue(node);
 
             while (!open_list.empty()){ // while open_list is not empty
-                node = poll(); // return first node in open_list and remove it from open_list
+                PlannerNode *node = open_list.poll(); // return first node in open_list and remove it from open_list
 
                 if (!node -> visited){ // if node has not been expanded
                     node -> visited = true; // mark it as expanded    
@@ -236,14 +236,14 @@ namespace ee3305
                         for (int d = 0; d < 8; ++d){ // get neighbour coordinates
                             int nb_i = node -> i;
                             int nb_j = node -> j;
-                            if (d == 0) {nb_j += 1} // north
-                            else if (d == 1) {nb_i -= 1; nb_j += 1} // northwest
-                            else if (d == 2) {nb_i -= 1} // west
-                            else if (d == 3) {nb_i -= 1; nb_j -= 1} // southwest
-                            else if (d == 4) {nb_j -= 1} // south
-                            else if (d == 5) {nb_i += 1; nb_j -= 1} // southeast
-                            else if (d == 6) {nb_i += 1} // east
-                            else if (d == 7) {nb_i += 1; nb_j += 1} // northeast
+                            if (d == 0) {nb_j += 1;} // north
+                            else if (d == 1) {nb_i -= 1; nb_j += 1;} // northwest
+                            else if (d == 2) {nb_i -= 1;} // west
+                            else if (d == 3) {nb_i -= 1; nb_j -= 1;} // southwest
+                            else if (d == 4) {nb_j -= 1;} // south
+                            else if (d == 5) {nb_i += 1; nb_j -= 1;} // southeast
+                            else if (d == 6) {nb_i += 1;} // east
+                            else if (d == 7) {nb_i += 1; nb_j += 1;} // northeast
 
                             if (!inMap(nb_i, nb_j)){ // if neighbour is not in the map
                                 continue;
