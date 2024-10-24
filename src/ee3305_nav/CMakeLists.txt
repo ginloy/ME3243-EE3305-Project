@@ -69,4 +69,15 @@ install(
   DESTINATION lib/${PROJECT_NAME}
 )
 
+add_executable(controller src/controller.cpp)
+ament_target_dependencies(controller
+  nav_msgs
+  rclcpp
+)
+target_include_directories(controller PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+install(
+  TARGETS controller
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 ament_package()
