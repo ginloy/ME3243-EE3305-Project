@@ -2,6 +2,8 @@
 #include <iomanip>
 #include <cmath>
 #include <list>
+#include <queue>
+#include <functional>
 
 #pragma once
 namespace ee3305
@@ -23,38 +25,48 @@ namespace ee3305
 
     // =================================================================================================
     /** OpenList manages the open list operations of the planner. */
+
+    static std::function cmp = [](const PlannerNode * a, const PlannerNode * b) {
+        return (a->f) >= (b->f);
+    };
+
     class OpenList
     {
     private:
-        std::list<PlannerNode *> list;
+        // std::list<PlannerNode *> list;
+        std::priority_queue<PlannerNode *, std::vector<PlannerNode *>, decltype(cmp)> pqueue;
 
     public:
-        explicit OpenList() {}
+        explicit OpenList(): pqueue(cmp) {}
 
         /** Queues the node into the open list */
         void queue(PlannerNode *const node)
         {
-            auto it_node = list.begin(); // a queued node in the open list
-            while (it_node != list.end())
-            {
-                const double &queued_f = (*it_node)->f; // f-cost of queued node in open list.
-                if (node->f < queued_f)
-                    break; // insert `node` before queued node if it is cheaper.
+            // auto it_node = list.begin(); // a queued node in the open list
+            // while (it_node != list.end())
+            // {
+            //     const double &queued_f = (*it_node)->f; // f-cost of queued node in open list.
+            //     if (node->f < queued_f)
+            //         break; // insert `node` before queued node if it is cheaper.
 
-                it_node = std::next(it_node); // go to next queued node in open list.
-            }
-            list.insert(it_node, node);
+            //     it_node = std::next(it_node); // go to next queued node in open list.
+            // }
+            // list.insert(it_node, node);
+            pqueue.push(node);
         }
 
         /** Returns the node with the cheapest f cost */
         PlannerNode *poll()
         {
-            PlannerNode *node = list.front();
-            list.pop_front();
-            return node;
+            // PlannerNode *node = list.front();
+            // list.pop_front();
+            // return node;
+            auto temp = pqueue.top();
+            pqueue.pop();
+            return temp;
         }
 
         /** Returns true if the open list is empty, false otherwise */
-        bool empty() { return list.empty(); }
+        bool empty() { return pqueue.empty(); }
     };
 }
