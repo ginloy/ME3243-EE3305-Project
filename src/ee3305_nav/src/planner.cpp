@@ -6,7 +6,6 @@
 #include <iostream> // for i/o operations
 #include <memory> // allows the use of smart pointers for automatic memory management
 #include <vector> // provides the std::vector container, which is a dynamic array class
-#include <cfloat>
 
 #include "ee3305_nav/ee3305_nav.hpp"
 #include "ee3305_nav/planner.hpp"
@@ -254,7 +253,7 @@ private:
           PlannerNode *nb_node = getNode(nb_i, nb_j);
           double nb_penalty = getPenalty(nb_i, nb_j);
           double new_nb_g_cost = nb_penalty <= 98 ?
-              node->g + nb_penalty * eucDist(nb_i, nb_j, node->i, node->j) : DBL_MAX;
+              node->g + nb_penalty * eucDist(nb_i, nb_j, node->i, node->j) : INFINITY;
 
           // if this g cost is cheaper than the previously stored value
           if (new_nb_g_cost < nb_node->g) {
