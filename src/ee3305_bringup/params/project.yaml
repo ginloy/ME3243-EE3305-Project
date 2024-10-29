@@ -15,7 +15,8 @@ controller:
     frequency: 20.0 # {double} [Hz]
     lookahead_distance: 0.1 # {double} [m]
     stop_thres: 0.1 # {double} [m]
-    kp_lin: 0.0 # {double}
-    kd_lin: 0.0 # {double} [s]
-    kp_ang: 0.0 # {double} 
-    kd_ang: 0.0 # {double} [s]
+    lookahead_lin_vel: 1.0
+    # kp_lin: 0.0 # {double}
+    # kd_lin: 0.0 # {double} [s]
+    # kp_ang: 0.0 # {double} 
+    # kd_ang: 0.0 # {double} [s]
