@@ -212,11 +212,11 @@ private:
     while (!open_list.empty()) {            // while open_list is not empty
       PlannerNode *node = open_list.poll(); // return first node in open_list
                                             // and remove it from open_list
-      if (node->visited) {
-        continue;
-      }
+      // if (node->visited) {
+      //   continue;
+      // }
 
-      node->visited = true; // mark it as expanded
+      // node->visited = true; // mark it as expanded
 
       if (node->i == goal_i &&
           node->j == goal_j) { // if current node is the goal
@@ -253,7 +253,7 @@ private:
           PlannerNode *nb_node = getNode(nb_i, nb_j);
           double nb_penalty = getPenalty(nb_i, nb_j);
           double new_nb_g_cost = nb_penalty <= 98 ?
-              node->g + nb_penalty * eucDist(nb_i, nb_j, node->i, node->j) : INFINITY;
+              node->g + nb_penalty + eucDist(nb_i, nb_j, node->i, node->j) : INFINITY;
 
           // if this g cost is cheaper than the previously stored value
           if (new_nb_g_cost < nb_node->g) {
