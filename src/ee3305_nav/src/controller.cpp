@@ -87,7 +87,30 @@ void Controller::cbTimerMain() {
   if (path.empty() || std::isnan(rbt_x)) {
     return;
   }
+// Calculate distance to the final point in the path
+  Point<double> end_point = path.back();
+  double dist_to_end = sqrt(pow(end_point.x - rbt_x, 2) + pow(end_point.y - rbt_y, 2));
 
+  // Check if within stopping threshold
+  if (dist_to_end < stop_thres) {
+    // Gradually decelerate to stop
+    double decel_factor = dist_to_end / stop_thres; // Scale down velocity based on distance to endpoint
+    double lin_vel = prev_lin_vel * decel_factor;
+    double ang_vel = prev_ang_vel * decel_factor;
+
+    // Set previous velocities to zero to completely stop at the endpoint
+    if (dist_to_end < 0.1) { // Consider a small threshold for complete stop
+      lin_vel = 0;
+      ang_vel = 0;
+    }
+
+    // Publish the decelerated velocities
+    geometry_msgs::msg::Twist msg;
+    msg.angular.z = ang_vel;
+    msg.linear.x = lin_vel;
+    pub_cmd_vel->publish(msg);
+    return; // Exit early, so it doesn’t proceed with further calculations
+  }
   // auto sgn = [](double v) -> double {
 
   // };
