@@ -1,7 +1,6 @@
 #ifndef CONTROLLER_HPP
 #define CONTROLLER_HPP
 
-#include <ee3305_nav/ee3305_nav.hpp>
 #include <geometry_msgs/msg/point_stamped.hpp>
 #include <geometry_msgs/msg/twist.hpp>
 #include <nav_msgs/msg/detail/odometry__struct.hpp>

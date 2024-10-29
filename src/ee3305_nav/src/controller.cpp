@@ -1,4 +1,5 @@
 #include "ee3305_nav/controller.hpp"
+#include "ee3305_nav/ee3305_nav.hpp"
 #include <chrono>
 #include <cmath>
 #include <memory>
@@ -29,7 +30,7 @@ void Controller::initStates() {
   rbt_x = NAN;
   rbt_y = NAN;
   rbt_h = NAN;
-  prev_time = this -> now().seconds();
+  prev_time = this->now().seconds();
 }
 
 void Controller::initParams() {
@@ -87,7 +88,8 @@ void Controller::cbTimerMain() {
   }
 
   auto euc_dist = [](std::pair<double, double> a, std::pair<double, double> b) {
-    return std::sqrt(std::pow(a.first - b.first, 2) + std::pow(a.second - b.second, 2));
+    return std::sqrt(std::pow(a.first - b.first, 2) +
+                     std::pow(a.second - b.second, 2));
   };
 
   // auto sgn = [](double v) -> double {
@@ -102,14 +104,12 @@ void Controller::cbTimerMain() {
   for (int i = 0; i < path_flat.size(); i += 2) {
     double x = path_flat[i];
     double y = path_flat[i + 1];
-
-    
   }
 
-  // TODO Find first point that exceeds lookahead 
+  // TODO Find first point that exceeds lookahead
 
   // TODO Get elapsed time and update prev time
-  double current_time = this -> now().seconds();
+  double current_time = this->now().seconds();
   double elapsed_time = current_time - prev_time;
   prev_time = current_time;
 
@@ -121,12 +121,12 @@ void Controller::cbTimerMain() {
 
   // TODO Constrain linear velocity and update prev_lin_vel
 
-  // TODO Calculate the desired angular velocity from the constrained linear velocity
+  // TODO Calculate the desired angular velocity from the constrained linear
+  // velocity
 
   // TODO Constrain angular acceleration
 
   // TODO Constrain angular velocity and update prev_ang_vel
-
 
   double ang_vel = 0.0; // TODO
   double lin_vel = 0.0; // TODO
