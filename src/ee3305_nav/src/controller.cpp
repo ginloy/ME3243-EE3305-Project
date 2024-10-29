@@ -4,7 +4,6 @@
 #include <cmath>
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
-#include <utility>
 
 using namespace std::chrono_literals;
 
@@ -31,6 +30,8 @@ void Controller::initStates() {
   rbt_y = NAN;
   rbt_h = NAN;
   prev_time = this->now().seconds();
+  prev_lin_vel = 0;
+  prev_ang_vel = 0;
 }
 
 void Controller::initParams() {
@@ -40,11 +41,12 @@ void Controller::initParams() {
   initParam(this, "lookahead_lin_vel", lookahead_lin_vel);
   initParam(this, "max_lin_vel", max_lin_vel);
   initParam(this, "max_lin_acc", max_lin_acc);
+  initParam(this, "max_ang_vel", max_ang_vel);
+  initParam(this, "max_ang_acc", max_ang_acc);
 }
 
 void Controller::initServices() {
-  // timer_main = this->create_wall_timer(
-  //     1s / frequency, std::bind(&Controller::cbTimerMain, this));
+  // TODO
 }
 
 void Controller::initTopics() {
@@ -66,10 +68,9 @@ void Controller::initTimers() {
 }
 
 void Controller::cbPath(nav_msgs::msg::Path::SharedPtr msg) {
-  path_flat.clear();
+  path.clear();
   for (const geometry_msgs::msg::PoseStamped &pose : msg->poses) {
-    path_flat.push_back(pose.pose.position.x);
-    path_flat.push_back(pose.pose.position.y);
+    path.emplace_back(pose.pose.position.x, pose.pose.position.y);
   }
 }
 
@@ -83,53 +84,75 @@ void Controller::cbOdom(nav_msgs::msg::Odometry::SharedPtr msg) {
 }
 
 void Controller::cbTimerMain() {
-  if (path_flat.empty() || std::isnan(rbt_x)) {
+  if (path.empty() || std::isnan(rbt_x)) {
     return;
   }
-
-  auto euc_dist = [](std::pair<double, double> a, std::pair<double, double> b) {
-    return std::sqrt(std::pow(a.first - b.first, 2) +
-                     std::pow(a.second - b.second, 2));
-  };
 
   // auto sgn = [](double v) -> double {
 
   // };
 
-  // Get closest coordinate
-  double cx = 0.0;
-  double cy = 0.0;
-  int ci = 0;
-  double closest = INFINITY;
-  for (int i = 0; i < path_flat.size(); i += 2) {
-    double x = path_flat[i];
-    double y = path_flat[i + 1];
+  // Get closest point that exceeds lookahead
+  Point<double> closest = [&](){
+    double smallestDist = INFINITY;
+    int idx = -1;
+    for (size_t i = 0; i < path.size(); ++i) {
+      auto p = path[i];
+      const auto dist = p.dist(Point(rbt_x, rbt_y));
+      if (dist < smallestDist && dist > lookahead_distance) {
+        smallestDist = dist;
+        idx = i;
+      }
+    }
+    return idx >= 0 ? path[idx] : Point<double>(INFINITY, INFINITY);
+  }();
+  if (closest.x == INFINITY) {
+    return;
   }
 
-  // TODO Find first point that exceeds lookahead
-
-  // TODO Get elapsed time and update prev time
+  // Get elapsed time and update prev time
   double current_time = this->now().seconds();
   double elapsed_time = current_time - prev_time;
   prev_time = current_time;
 
-  // TODO Calculate the lookahead point’s coordinates in the robot frame.
+  // Calculate the lookahead point’s coordinates in the robot frame.
+  Point<double> lookPoint = [&](){
+    double dx = closest.x - rbt_x;
+    double dy = closest.y - rbt_y;
+
+    double lookX = dx * cos(rbt_h) + dy * sin(rbt_h); 
+    double lookY = dy * cos(rbt_h) - dx * sin(rbt_h); 
+    
+    return Point(lookX, lookY);
+  }();
 
   // TODO Calculate curvature
+  double curvature = 2 * lookPoint.y / (std::pow(lookPoint.x, 2) + std::pow(lookPoint.y, 2));
 
   // TODO Constrain linear acceleration
+  double acc = (lookahead_lin_vel - prev_lin_vel) / elapsed_time;
+  double lin_acc = acc > max_lin_acc ? max_lin_acc : acc;  
 
   // TODO Constrain linear velocity and update prev_lin_vel
+  double vel = prev_lin_vel + lin_acc;
+  double lin_vel = vel > max_lin_vel ? max_lin_vel : vel;
+  prev_lin_vel = lin_vel;
 
-  // TODO Calculate the desired angular velocity from the constrained linear
-  // velocity
+  // TODO Calculate the desired angular velocity from the constrained linear velocity
+  double ang_vel = curvature * lin_vel;
 
   // TODO Constrain angular acceleration
+  double ang_acc = (ang_vel - prev_ang_vel) / elapsed_time;
+  ang_acc = abs(ang_acc) > abs(max_ang_acc) ? (ang_acc < 0 ? -max_ang_acc : max_ang_acc) : ang_acc;
 
   // TODO Constrain angular velocity and update prev_ang_vel
+  ang_vel = prev_ang_vel + ang_acc;
+  ang_vel = abs(ang_vel) > abs(max_ang_vel) ? (ang_vel < 0 ? -max_ang_vel : max_ang_vel) : ang_vel;
+  prev_ang_vel = ang_vel;
 
-  double ang_vel = 0.0; // TODO
-  double lin_vel = 0.0; // TODO
+  std::cout << "Linear Velocity: " << lin_vel << std::endl;
+  std::cout << "Angular Velocity: " << ang_vel << std::endl;
+  
 
   // Publish message
   geometry_msgs::msg::Twist msg;

@@ -67,6 +67,16 @@ def generate_launch_description():
         parameters=[params_path],
     )
     ld.add_action(node_planner)
+
+    # controller
+    node_controller = Node(
+        package='ee3305_nav',
+        executable='controller',
+        name='controller',
+        output='screen',
+        parameters=[params_path],
+    )
+    ld.add_action(node_controller)
     
     # rviz 
     node_rviz = Node(

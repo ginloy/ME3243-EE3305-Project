@@ -3,11 +3,27 @@
 
 #include <geometry_msgs/msg/point_stamped.hpp>
 #include <geometry_msgs/msg/twist.hpp>
-#include <nav_msgs/msg/detail/odometry__struct.hpp>
-#include <nav_msgs/msg/detail/path__struct.hpp>
+#include <nav_msgs/msg/odometry.hpp>
+#include <nav_msgs/srv/get_plan.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 namespace ee3305 {
+
+template <typename T> class Point {
+public:
+  T x;
+  T y;
+  Point(T &&x, T &&y) : Point(x, y) {}
+  Point(const T &x, const T &y): x(x), y(y) {}
+
+  template <typename X>
+  T dist(Point<X> &&other) {
+    return std::sqrt(std::pow(x - other.x, 2) + std::pow(y - other.y, 2));
+  }
+
+  
+};
+
 class Controller : public rclcpp::Node {
 private:
   // States and ROS2 Parameters, Actions, Topics, Timers and Services
@@ -27,13 +43,17 @@ private:
   double lookahead_lin_vel;
   double max_lin_vel;
   double max_lin_acc;
+  double max_ang_vel;
+  double max_ang_acc;
 
   // ----------- States / Others -------------
-  std::vector<double> path_flat;
+  std::vector<Point<double>> path;
   double rbt_x;
   double rbt_y;
   double rbt_h;
   double prev_time;
+  double prev_lin_vel;
+  double prev_ang_vel;
 
 public:
   // Constructors, Destructors, etc..
