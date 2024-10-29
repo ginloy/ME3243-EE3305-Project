@@ -16,6 +16,8 @@ controller:
     lookahead_distance: 0.1 # {double} [m]
     stop_thres: 0.1 # {double} [m]
     lookahead_lin_vel: 1.0
+    max_lin_vel: 0.22
+    max_lin_acc: 1.0
     # kp_lin: 0.0 # {double}
     # kd_lin: 0.0 # {double} [s]
     # kp_ang: 0.0 # {double} 

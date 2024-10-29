@@ -26,12 +26,15 @@ private:
   double lookahead_distance;
   double stop_thres;
   double lookahead_lin_vel;
+  double max_lin_vel;
+  double max_lin_acc;
 
   // ----------- States / Others -------------
-  std::vector<double> plan_flat;
+  std::vector<double> path_flat;
   double rbt_x;
   double rbt_y;
   double rbt_h;
+  double prev_time;
 
 public:
   // Constructors, Destructors, etc..

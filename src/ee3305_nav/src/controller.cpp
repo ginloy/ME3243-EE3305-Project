@@ -1,7 +1,9 @@
 #include "ee3305_nav/controller.hpp"
 #include <chrono>
+#include <cmath>
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
+#include <utility>
 
 using namespace std::chrono_literals;
 
@@ -27,6 +29,7 @@ void Controller::initStates() {
   rbt_x = NAN;
   rbt_y = NAN;
   rbt_h = NAN;
+  prev_time = this -> now().seconds();
 }
 
 void Controller::initParams() {
@@ -34,11 +37,13 @@ void Controller::initParams() {
   initParam(this, "lookahead_distance", lookahead_distance);
   initParam(this, "stop_thres", stop_thres);
   initParam(this, "lookahead_lin_vel", lookahead_lin_vel);
+  initParam(this, "max_lin_vel", max_lin_vel);
+  initParam(this, "max_lin_acc", max_lin_acc);
 }
 
 void Controller::initServices() {
-  timer_main = this->create_wall_timer(
-      1s / frequency, std::bind(&Controller::cbTimerMain, this));
+  // timer_main = this->create_wall_timer(
+  //     1s / frequency, std::bind(&Controller::cbTimerMain, this));
 }
 
 void Controller::initTopics() {
@@ -55,14 +60,15 @@ void Controller::initTopics() {
 }
 
 void Controller::initTimers() {
-  // TODO
+  timer_main = this->create_wall_timer(
+      1s / frequency, std::bind(&Controller::cbTimerMain, this));
 }
 
 void Controller::cbPath(nav_msgs::msg::Path::SharedPtr msg) {
-  plan_flat.clear();
+  path_flat.clear();
   for (const geometry_msgs::msg::PoseStamped &pose : msg->poses) {
-    plan_flat.push_back(pose.pose.position.x);
-    plan_flat.push_back(pose.pose.position.y);
+    path_flat.push_back(pose.pose.position.x);
+    path_flat.push_back(pose.pose.position.y);
   }
 }
 
@@ -76,6 +82,52 @@ void Controller::cbOdom(nav_msgs::msg::Odometry::SharedPtr msg) {
 }
 
 void Controller::cbTimerMain() {
+  if (path_flat.empty() || std::isnan(rbt_x)) {
+    return;
+  }
+
+  auto euc_dist = [](std::pair<double, double> a, std::pair<double, double> b) {
+    return std::sqrt(std::pow(a.first - b.first, 2) + std::pow(a.second - b.second, 2));
+  };
+
+  // auto sgn = [](double v) -> double {
+
+  // };
+
+  // Get closest coordinate
+  double cx = 0.0;
+  double cy = 0.0;
+  int ci = 0;
+  double closest = INFINITY;
+  for (int i = 0; i < path_flat.size(); i += 2) {
+    double x = path_flat[i];
+    double y = path_flat[i + 1];
+
+    
+  }
+
+  // TODO Find first point that exceeds lookahead 
+
+  // TODO Get elapsed time and update prev time
+  double current_time = this -> now().seconds();
+  double elapsed_time = current_time - prev_time;
+  prev_time = current_time;
+
+  // TODO Calculate the lookahead point’s coordinates in the robot frame.
+
+  // TODO Calculate curvature
+
+  // TODO Constrain linear acceleration
+
+  // TODO Constrain linear velocity and update prev_lin_vel
+
+  // TODO Calculate the desired angular velocity from the constrained linear velocity
+
+  // TODO Constrain angular acceleration
+
+  // TODO Constrain angular velocity and update prev_ang_vel
+
+
   double ang_vel = 0.0; // TODO
   double lin_vel = 0.0; // TODO
 
