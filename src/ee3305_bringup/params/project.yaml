@@ -1,7 +1,7 @@
 behavior:
   ros__parameters:
     frequency: 20.0 # {double} [Hz]
-    plan_frequency: 0.5 # {double} [Hz]
+    plan_frequency: 20.0 # {double} [Hz]
 
 map_server:
   ros__parameters:
