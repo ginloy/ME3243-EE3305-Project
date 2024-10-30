@@ -13,15 +13,12 @@ template <typename T> class Point {
 public:
   T x;
   T y;
-  Point(T &&x, T &&y) : Point(x, y) {}
+
   Point(const T &x, const T &y): x(x), y(y) {}
 
-  template <typename X>
-  T dist(Point<X> &&other) {
+  T dist(const Point<T> &other) const {
     return std::sqrt(std::pow(x - other.x, 2) + std::pow(y - other.y, 2));
   }
-
-  
 };
 
 class Controller : public rclcpp::Node {
@@ -45,6 +42,7 @@ private:
   double max_lin_acc;
   double max_ang_vel;
   double max_ang_acc;
+  double curve_threshold;
 
   // ----------- States / Others -------------
   std::vector<Point<double>> path;
@@ -76,6 +74,8 @@ private:
   void cbOdom(nav_msgs::msg::Odometry::SharedPtr msg);
 
   void cbTimerMain();
+
+  void prunePath();
 
 public:
   // Other public definitions

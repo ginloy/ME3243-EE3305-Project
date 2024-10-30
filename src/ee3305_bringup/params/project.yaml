@@ -1,7 +1,7 @@
 behavior:
   ros__parameters:
     frequency: 20.0 # {double} [Hz]
-    plan_frequency: 20.0 # {double} [Hz]
+    plan_frequency: 5.0 # {double} [Hz]
 
 map_server:
   ros__parameters:
@@ -13,13 +13,14 @@ map_server:
 controller:
   ros__parameters:
     frequency: 20.0 # {double} [Hz]
-    lookahead_distance: 0.1 # {double} [m]
+    lookahead_distance: 0.5 # {double} [m]
     stop_thres: 0.1 # {double} [m]
     lookahead_lin_vel: 1.0
-    max_lin_vel: 0.22
+    max_lin_vel: 1.0
     max_lin_acc: 1.0
-    max_ang_vel: 0.5
+    max_ang_vel: 2.0
     max_ang_acc: 1.0
+    curve_threshold: 1.0
     # kp_lin: 0.0 # {double}
     # kd_lin: 0.0 # {double} [s]
     # kp_ang: 0.0 # {double} 
