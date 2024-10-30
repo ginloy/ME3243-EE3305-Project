@@ -14,7 +14,7 @@ controller:
   ros__parameters:
     frequency: 20.0 # {double} [Hz]
     lookahead_distance: 0.5 # {double} [m]
-    stop_thres: 0.1 # {double} [m]
+    stop_thres: 0.05 # {double} [m]
     lookahead_lin_vel: 1.0
     max_lin_vel: 1.0
     max_lin_acc: 1.0

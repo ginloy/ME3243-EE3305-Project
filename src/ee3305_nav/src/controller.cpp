@@ -125,7 +125,7 @@ void Controller::cbTimerMain() {
 
   double lookaheadError = closest.dist(currentPt) / lookahead_distance;
   double lin_vel = lookahead_lin_vel * (lookaheadError < 1.0 ? lookaheadError : 1.0);
-  lin_vel = currentPt.dist(*path.rbegin()) < 0.05 ? 0.0 : lin_vel;
+  lin_vel = currentPt.dist(*path.rbegin()) < stop_thres ? 0.0 : lin_vel;
   // double lin_vel = lookahead_lin_vel;
 
   // Get elapsed time and update prev time
