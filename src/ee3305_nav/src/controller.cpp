@@ -47,7 +47,7 @@ void Controller::initParams() {
 }
 
 void Controller::initServices() {
-  // TODO
+  // Unused
 }
 
 void Controller::initTopics() {
@@ -105,27 +105,7 @@ void Controller::cbTimerMain() {
     return;
   }
 
-  // auto sgn = [](double v) -> double {
-
-  // };
-
-// // Log the original path
-  RCLCPP_INFO(this->get_logger(), "Original path:");
-std::string path_log;
-for (const auto &point : path) {
-    path_log += "(" + std::to_string(point.x) + ", " + std::to_string(point.y) + ") ";
-}
-RCLCPP_INFO(this->get_logger(), "  %s", path_log.c_str());
-
   prunePath();
-// Log the pruned path
-RCLCPP_INFO(this->get_logger(), "Pruned path:");
-std::string prune_log;
-for (const auto &point : path) {
-    prune_log += "(" + std::to_string(point.x) + ", " + std::to_string(point.y) + ") ";
-}
-RCLCPP_INFO(this->get_logger(), "  %s", prune_log.c_str());
-
 
   Point<double> currentPt = Point(rbt_x, rbt_y);
 
@@ -143,12 +123,6 @@ RCLCPP_INFO(this->get_logger(), "  %s", prune_log.c_str());
   double lookaheadError = closest.dist(currentPt) / lookahead_distance;
   double lin_vel = lookahead_lin_vel * (lookaheadError < 1.0 ? lookaheadError : 1.0);
   lin_vel = currentPt.dist(*path.rbegin()) < stop_thres ? 0.0 : lin_vel;
-  // double lin_vel = lookahead_lin_vel;
-
-  // Get elapsed time and update prev time
-  // double current_time = this->now().seconds();
-  // double elapsed_time = current_time - prev_time;
-  // prev_time = current_time;
 
   // Calculate the lookahead point’s coordinates in the robot frame.
   Point<double> lookPoint = [&]() {
@@ -161,53 +135,13 @@ RCLCPP_INFO(this->get_logger(), "  %s", prune_log.c_str());
     return Point(lookX, lookY);
   }();
 
-  // double lin_vel = lookahead_lin_vel;
-  // if (closest.dist(*path.rbegin()) < 0.001 &&
-  //     closest.dist(Point(rbt_x, rbt_y)) < 0.05) {
-  //   lin_vel = 0.0;
-  // }
 
   // Calculate curvature
   double curvature =
       2 * lookPoint.y / (std::pow(lookPoint.x, 2) + std::pow(lookPoint.y, 2));
 
-  // lin_vel /= curve_threshold / abs(curvature);
-
-  // if (abs(curvature) > curve_threshold / lin_vel) {
-  //   lin_vel = curve_threshold / abs(curvature);
-    // lin_vel = lin_vel < 0.01 ? 0.01 : lin_vel;
-  // }
-
   std::cout << "Curvature: " << curvature << std::endl;
 
-  // Constrain linear acceleration
-  // double acc = (lookahead_lin_vel - prev_lin_vel) / elapsed_time;
-  // double lin_acc = acc > max_lin_acc ? max_lin_acc : acc;
-
-  // // Constrain linear velocity and update prev_lin_vel
-  // double vel = prev_lin_vel + lin_acc;
-  // double lin_vel = vel > max_lin_vel ? max_lin_vel : vel;
-  // prev_lin_vel = lin_vel;
-
-  // Calculate the desired angular velocity from the constrained linear
-  // velocity
-  // lin_vel /= abs(curvature);
-  // lin_vel *= 0.2;
-  // lin_vel = lin_vel > max_lin_vel ? max_lin_vel : lin_vel;
-  // lin_vel = lin_vel > max_lin_vel ? max_lin_vel : lin_vel;
-
-  // Constrain angular acceleration
-  // double ang_acc = (ang_vel - prev_ang_vel) / elapsed_time;
-  // ang_acc = abs(ang_acc) > abs(max_ang_acc)
-  //               ? (ang_acc < 0 ? -max_ang_acc : max_ang_acc)
-  //               : ang_acc;
-
-  // // Constrain angular velocity and update prev_ang_vel
-  // ang_vel = prev_ang_vel + ang_acc;
-  // ang_vel = abs(ang_vel) > abs(max_ang_vel)
-  //               ? (ang_vel < 0 ? -max_ang_vel : max_ang_vel)
-  //               : ang_vel;
-  // prev_ang_vel = ang_vel;
   if (abs(curvature) > curve_threshold) {
     lin_vel *= curve_threshold / abs(curvature);
   }
