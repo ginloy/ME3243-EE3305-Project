@@ -109,7 +109,24 @@ void Controller::cbTimerMain() {
 
   // };
 
+// // Log the original path
+  RCLCPP_INFO(this->get_logger(), "Original path:");
+std::string path_log;
+for (const auto &point : path) {
+    path_log += "(" + std::to_string(point.x) + ", " + std::to_string(point.y) + ") ";
+}
+RCLCPP_INFO(this->get_logger(), "  %s", path_log.c_str());
+
   prunePath();
+// Log the pruned path
+RCLCPP_INFO(this->get_logger(), "Pruned path:");
+std::string prune_log;
+for (const auto &point : path) {
+    prune_log += "(" + std::to_string(point.x) + ", " + std::to_string(point.y) + ") ";
+}
+RCLCPP_INFO(this->get_logger(), "  %s", prune_log.c_str());
+
+
   Point<double> currentPt = Point(rbt_x, rbt_y);
 
   // Get closest point that exceeds lookahead
